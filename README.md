@@ -1,6 +1,10 @@
 # statistics
-Here are analyzes of the most diverse areas processed in Data Science languages.
+Here are studies on Data Science topics.
 
 ## Time Series
 
 ### Electricity Consumption
+
+This is a database on electricity consumption in Brazil. The state of Rio Grande do Sul was selected to forecast energy consumption for the year 2021.
+
+In addition to verifying the seasonality present in the data, which is expected given that the hottest months consume more energy in the country, a strong trend towards increased consumption over time was also noted.
