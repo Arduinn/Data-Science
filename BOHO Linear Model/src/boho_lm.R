@@ -1,4 +1,4 @@
-rm(list=ls())
+rm(list = ls())
 # Settings ----------------------------------------------------------------
 
 library(zoo)
@@ -8,19 +8,19 @@ library(dplyr)
 library(openxlsx)
 library(car)
 library(lmtest)
+library(reshape2)
 
 # Data --------------------------------------------------------------------
 
 # Specify the path to your Excel file
-file_path <- "./data/BOHO_data.xlsx"
+file_path <- "../data/BOHO_data.xlsx"
 df <- read_excel(file_path, sheet = "BOHO", skip = 4)
-colnames(df) <- c('Date','BOHO','HO','BO')
+colnames(df) <- c('Date', 'BOHO', 'HO', 'BO')
 df$Date <- as.Date(df$Date)
 
 # Sort the DataFrame by Date in descending order
 df <- df %>% arrange(Date)
 df_date <- df$Date
-
 
 # Remove unwanted columns
 df <- df[, c('BOHO', 'HO', 'BO')]  # Keep only the necessary columns
@@ -38,7 +38,6 @@ if (!all(c("BOHO", "HO", "BO") %in% colnames(df))) {
 # Check if the data is numeric
 df[] <- lapply(df, as.numeric)
 
-
 # Descriptive Analysis ----------------------------------------------------
 
 # Checking Correlation Between Variables
@@ -46,10 +45,14 @@ cor(df$BOHO, df$HO)
 cor(df$BOHO, df$BO)
 
 # Plot 1
+jpeg("../report/BOHO_vs_HO.jpg", width = 800, height = 600)
 plot(df$HO, df$BOHO, main = "BOHO vs HO", xlab = "HO", ylab = "BOHO")
+dev.off()
 
 # Plot 2
+jpeg("../report/BOHO_vs_BO.jpg", width = 800, height = 600)
 plot(df$BO, df$BOHO, main = "BOHO vs BO", xlab = "BO", ylab = "BOHO")
+dev.off()
 
 # LM ----------------------------------------------------------------------
 
@@ -70,8 +73,10 @@ cat("Shapiro-Wilk test p-value:", shapiro_test$p.value, "\n")
 
 # Influential Plots
 cooks_d <- cooks.distance(lm_boho)
+jpeg("../report/Cooks_Distance.jpg", width = 800, height = 600)
 plot(cooks_d, type = "h", main = "Cook's Distance", ylab = "Distance")
 abline(h = 4 / length(cooks_d), col = "red")  # Threshold line
+dev.off()
 
 # Moving LM Model ---------------------------------------------------------
 window_size <- 30  # Tamanho da janela (30 dias)
@@ -109,7 +114,7 @@ rolling_long <- reshape2::melt(rolling_results, id.vars = "Date",
                                value.name = "Value")
 
 # Plot the coefficients over time
-ggplot(rolling_long, aes(x = Date, y = Value, color = Coefficient)) +
+rolling_plot <- ggplot(rolling_long, aes(x = Date, y = Value, color = Coefficient)) +
   geom_line() +
   labs(title = "Rolling Regression Coefficients Over Time",
        x = "Date",
@@ -117,3 +122,5 @@ ggplot(rolling_long, aes(x = Date, y = Value, color = Coefficient)) +
   theme_minimal() +
   theme(legend.title = element_blank())
 
+# Save the ggplot
+ggsave("../report/Rolling_Regression_Coefficients.jpg", rolling_plot, width = 10, height = 6, dpi = 300)
